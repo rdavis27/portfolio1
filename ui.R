@@ -13,6 +13,7 @@ shinyUI(fluidPage(
             #textInput("portname", "New portfolio name", value=""),
             textInput("password", "Password", value="rpass"),
             selectInput("portfolio", "Portfolio", choices = "test"),
+            checkboxInput("adjusted", "Adjust for Dividends", value = TRUE),
             dateRangeInput('dateRange',
                            label = 'Date range input: yyyy-mm-dd',
                            start = '2018-01-01', end = Sys.Date()),

@@ -16,6 +16,18 @@ shinyServer(function(input, output, session){
         portfile <- input$portfile
         if (is.null(portfile)) return(NULL)
         print(portfile$datapath)
+        tt <- read.csv(portfile$datapath, header = FALSE, stringsAsFactors = FALSE)
+        hdr <- tt$V1[1]
+        len <- nchar(hdr)
+        hr   <- substring(hdr, len-22, len-21)
+        min  <- substring(hdr, len-19, len-18)
+        ampm <- substring(hdr, len-16, len-15)
+        tz   <- substring(hdr, len-13, len-12) # should be ET
+        mon  <- substring(hdr, len-9, len-8)
+        day  <- substring(hdr, len-6, len-5)
+        year <- substring(hdr, len-3)
+        datetime <- paste0(year,"-",mon,"-",day," ",hr,":",min," ", ampm, " ", tz)
+        #ptime <- as.POSIXlt(tt, tz="EST", "%Y-%m-%d %H:%M %p")
         pp <- read.csv(portfile$datapath, skip = 2, stringsAsFactors = FALSE)
         port <- pp[,c("Symbol","Quantity","Price","Market.Value","Cost.Basis","Reinvest.Dividends.","Description","Security.Type")]
         port <- port[port$Symbol != "Account Total",]
@@ -36,6 +48,7 @@ shinyServer(function(input, output, session){
         port$Pct.Port <- format(round(port$Pct.Port, 2), nsmall = 2)
         port$Pct.Gain <- format(round(port$Pct.Gain, 2), nsmall = 2)
         port$Dol.Gain <- format(round(port$Dol.Gain, 2), nsmall = 2)
+        port$Datetime <- datetime
         print(pp)
         print(port)
         write.csv(port, file = paste0(input$portname,".csv"))
@@ -129,15 +142,24 @@ shinyServer(function(input, output, session){
             if (symbol != "Cash"){
                 getSymbols(pp$Symbol[i], src = 'yahoo', from='1900-01-01')
                 gdata <- get(symbol)
-                ptoday <- as.numeric(Cl(gdata[NROW(gdata)]))
-                pday1  <- as.numeric(Cl(gdata[NROW(gdata)-1]))
-                pday5  <- as.numeric(Cl(gdata[NROW(gdata)-5]))
+                hdata <- gdata[strSpan]
+                if (input$adjusted == TRUE){
+                    ptoday <- as.numeric(Ad(gdata[NROW(gdata)]))
+                    pday1  <- as.numeric(Ad(gdata[NROW(gdata)-1]))
+                    pday5  <- as.numeric(Ad(gdata[NROW(gdata)-5]))
+                    pfirst <- as.numeric(Ad(hdata[1]))
+                    plast  <- as.numeric(Ad(hdata[NROW(hdata)]))
+                }
+                else{
+                    ptoday <- as.numeric(Cl(gdata[NROW(gdata)]))
+                    pday1  <- as.numeric(Cl(gdata[NROW(gdata)-1]))
+                    pday5  <- as.numeric(Cl(gdata[NROW(gdata)-5]))
+                    pfirst <- as.numeric(Cl(hdata[1]))
+                    plast  <- as.numeric(Cl(hdata[NROW(hdata)]))
+                }
                 pp$Market.Value[i] <- ptoday * pp$Quantity[i]
                 #pp$Total.Gain[i]   <- (pricen - price0) * pp$Quantity[i]
                 pp$Total.Gain[i] <- ptoday * pp$Quantity[i] - pp$Cost.Basis[i]
-                hdata <- gdata[strSpan]
-                pfirst <- as.numeric(Cl(hdata[1]))
-                plast  <- as.numeric(Cl(hdata[NROW(hdata)]))
                 ttoday <- ttoday + ptoday
                 tday1  <- tday1  + pday1
                 tday5  <- tday5  + pday5

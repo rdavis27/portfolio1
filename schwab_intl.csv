@@ -1,4 +1,4 @@
-"","Symbol","Quantity","Price","Market.Value","Cost.Basis","Reinvest","Description","Security.Type"
-3,"SCHC",256,39.110001,10012.160256,10012.160256,"No","Schwab International Small-Cap Equity ETF","ETFs & Closed End Funds"
-5,"SCHE",322,31.08,10007.76,10007.76,"No","Schwab Emerging Markets Equity ETF","ETFs & Closed End Funds"
-6,"SCHF",276,36.349998,10032.599448,10032.599448,"No","Schwab International Equity ETF","ETFs & Closed End Funds"
+"","Symbol","Quantity","Price","Market.Value","Cost.Basis","Reinvest","Description","Security.Type","Datetime"
+3,"SCHC",256,39.110001,10012.160256,10012.160256,"No","Schwab International Small-Cap Equity ETF","ETFs & Closed End Funds","2018-01-27 01:23 PM ET"
+5,"SCHE",322,31.08,10007.76,10007.76,"No","Schwab Emerging Markets Equity ETF","ETFs & Closed End Funds","2018-01-27 01:23 PM ET"
+6,"SCHF",276,36.349998,10032.599448,10032.599448,"No","Schwab International Equity ETF","ETFs & Closed End Funds","2018-01-27 01:23 PM ET"
