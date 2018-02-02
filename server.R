@@ -137,11 +137,14 @@ shinyServer(function(input, output, session){
         tday5  <- 0
         tfirst <- 0
         tlast  <- 0
+        lastdate <<- NULL
         for (i in 1:NROW(pp)){
             symbol <- pp$Symbol[i]
             if (symbol != "Cash"){
                 getSymbols(pp$Symbol[i], src = 'yahoo', from='1900-01-01')
                 gdata <- get(symbol)
+                #lastdate <<- max(lastdate, date(gdata[NROW(gdata)]))
+                lastdate <<- date(gdata[NROW(gdata)])
                 hdata <- gdata[strSpan]
                 if (input$adjusted == TRUE){
                     ptoday <- as.numeric(Ad(gdata[NROW(gdata)]))
@@ -219,6 +222,7 @@ shinyServer(function(input, output, session){
         if (input$password == readpass | input$password == writepass){
             getData()
             print(pp2)
+            cat(paste0("\nlast date = ", lastdate, "\n"))
             cat(file=stderr(), paste0("output$dollars:     ",input$portfolio,"|",input$span,
                                       "|",input$dateRange[1],"|",input$dateRange[2],"\n"))
         }
@@ -228,6 +232,7 @@ shinyServer(function(input, output, session){
         if (input$password == readpass | input$password == writepass){
             getData()
             print(pp3)
+            cat(paste0("\nlast date = ", lastdate, "\n"))
             cat(file=stderr(), paste0("output$percent:     ",input$portfolio,"|",input$span,
                                       "|",input$dateRange[1],"|",input$dateRange[2],"\n"))
         }
@@ -237,6 +242,7 @@ shinyServer(function(input, output, session){
         if (input$password == readpass | input$password == writepass){
             getData()
             print(pp1)
+            cat(paste0("\nlast date = ", lastdate, "\n"))
             cat(file=stderr(), paste0("output$portfolio:   ",input$portfolio,"|",input$span,
                                       "|",input$dateRange[1],"|",input$dateRange[2],"\n"))
         }
@@ -246,6 +252,7 @@ shinyServer(function(input, output, session){
         if (input$password == readpass | input$password == writepass){
             getData()
             print(pp0)
+            cat(paste0("\nlast date = ", lastdate, "\n"))
             cat(file=stderr(), paste0("output$description: ",input$portfolio,"|",input$span,
                                       "|",input$dateRange[1],"|",input$dateRange[2],"\n"))
         }
