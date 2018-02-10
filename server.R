@@ -132,6 +132,7 @@ shinyServer(function(input, output, session){
         pp3$Day1.Gain   <- NA
         pp3$Day5.Gain   <- NA
         pp3$Select.Gain <- NA
+        pp3$Portfolio   <- NA
         ttoday <- 0
         tday1  <- 0
         tday5  <- 0
@@ -174,6 +175,7 @@ shinyServer(function(input, output, session){
                 pp3$Day1.Gain[i]   <- 100 * (ptoday - pday1) / pday1
                 pp3$Day5.Gain[i]   <- 100 * (ptoday - pday5) / pday5
                 pp3$Select.Gain[i] <- 100 * (plast - pfirst) / pfirst
+                pp3$Portfolio[i]   <- 100 * pp$Market.Value[i]
             }
             else{
                 pp$Market.Value[i] <- pp$Cost.Basis[i]
@@ -184,13 +186,21 @@ shinyServer(function(input, output, session){
                 pp3$Day1.Gain[i]   <- 0
                 pp3$Day5.Gain[i]   <- 0
                 pp3$Select.Gain[i] <- 0
+                pp3$Portfolio[i]   <- 100 * pp$Market.Value[i]
                 pp0$Description[i] <- pp0$Security.Type[i]
             }
         }
         pp1 <- pp[,c(1,2,4,5)]
+        pp3$Portfolio <- pp3$Portfolio / sum(pp1[,3])
+        if (input$ordersym){
+           pp0 <- pp0[order(pp0$Symbol),]
+           pp1 <- pp1[order(pp1$Symbol),]
+           pp2 <- pp2[order(pp2$Symbol),]
+           pp3 <- pp3[order(pp3$Symbol),]
+        }
         pp1 <- rbind(pp1, c("Total", "", colSums(pp1[,3:4])))
         pp2 <- rbind(pp2, c("Total", colSums(pp2[,2:4])))
-        pp3 <- rbind(pp3, c("Total", 100*(ttoday-tday1)/tday1, 100*(ttoday-tday5)/tday5, 100*(tlast-tfirst)/tfirst))
+        pp3 <- rbind(pp3, c("Total", 100*(ttoday-tday1)/tday1, 100*(ttoday-tday5)/tday5, 100*(tlast-tfirst)/tfirst, sum(pp3[,5])))
         pp1[,3] <- as.numeric(pp1[,3])
         pp1[,4] <- as.numeric(pp1[,4])
         pp2[,2] <- as.numeric(pp2[,2])
@@ -199,20 +209,24 @@ shinyServer(function(input, output, session){
         pp3[,2] <- as.numeric(pp3[,2])
         pp3[,3] <- as.numeric(pp3[,3])
         pp3[,4] <- as.numeric(pp3[,4])
-        pp1$Market.Value<- format(round(pp1$Market.Value,2), nsmall = 2)
-        pp1$Total.Gain  <- format(round(pp1$Total.Gain,  2), nsmall = 2)
-        pp2$Day1.Gain   <- format(round(pp2$Day1.Gain,   2), nsmall = 2)
-        pp2$Day5.Gain   <- format(round(pp2$Day5.Gain,   2), nsmall = 2)
-        pp2$Select.Gain <- format(round(pp2$Select.Gain, 2), nsmall = 2)
-        pp3$Day1.Gain   <- format(round(pp3$Day1.Gain,   2), nsmall = 2)
-        pp3$Day5.Gain   <- format(round(pp3$Day5.Gain,   2), nsmall = 2)
-        pp3$Select.Gain <- format(round(pp3$Select.Gain, 2), nsmall = 2)
+        pp3[,5] <- as.numeric(pp3[,5])
+        bigmark <- ""
+        if (input$usecomma) bigmark <- ","
+        pp1$Market.Value<- format(round(pp1$Market.Value,2), nsmall = 2, big.mark = bigmark)
+        pp1$Total.Gain  <- format(round(pp1$Total.Gain,  2), nsmall = 2, big.mark = bigmark)
+        pp2$Day1.Gain   <- format(round(pp2$Day1.Gain,   2), nsmall = 2, big.mark = bigmark)
+        pp2$Day5.Gain   <- format(round(pp2$Day5.Gain,   2), nsmall = 2, big.mark = bigmark)
+        pp2$Select.Gain <- format(round(pp2$Select.Gain, 2), nsmall = 2, big.mark = bigmark)
+        pp3$Day1.Gain   <- format(round(pp3$Day1.Gain,   2), nsmall = 2, big.mark = bigmark)
+        pp3$Day5.Gain   <- format(round(pp3$Day5.Gain,   2), nsmall = 2, big.mark = bigmark)
+        pp3$Select.Gain <- format(round(pp3$Select.Gain, 2), nsmall = 2, big.mark = bigmark)
+        pp3$Portfolio   <- format(round(pp3$Portfolio,   2), nsmall = 2, big.mark = bigmark)
         if (input$span == "Use above dates"){
             span.label <- "Select.Gain"
         }
         else span.label <- paste0(input$span,".Gain")
         colnames(pp2) <- c("Symbol", "1D.Gain", "5D.Gain", span.label)
-        colnames(pp3) <- c("Symbol", "1D.Gain", "5D.Gain", span.label)
+        colnames(pp3) <- c("Symbol", "1D.Gain", "5D.Gain", span.label, "%Port")
         pp0 <<- pp0[,c(1,2)]
         pp1 <<- pp1
         pp2 <<- pp2
@@ -221,7 +235,7 @@ shinyServer(function(input, output, session){
     output$dollars <- renderPrint({
         if (input$password == readpass | input$password == writepass){
             getData()
-            print(pp2)
+            print(pp2, row.names = FALSE)
             cat(paste0("\nlast date = ", lastdate, "\n"))
             cat(file=stderr(), paste0("output$dollars:     ",input$portfolio,"|",input$span,
                                       "|",input$dateRange[1],"|",input$dateRange[2],"\n"))
@@ -231,7 +245,7 @@ shinyServer(function(input, output, session){
     output$percent <- renderPrint({
         if (input$password == readpass | input$password == writepass){
             getData()
-            print(pp3)
+            print(pp3, row.names = FALSE)
             cat(paste0("\nlast date = ", lastdate, "\n"))
             cat(file=stderr(), paste0("output$percent:     ",input$portfolio,"|",input$span,
                                       "|",input$dateRange[1],"|",input$dateRange[2],"\n"))
@@ -241,7 +255,7 @@ shinyServer(function(input, output, session){
     output$portfolio <- renderPrint({
         if (input$password == readpass | input$password == writepass){
             getData()
-            print(pp1)
+            print(pp1, row.names = FALSE)
             cat(paste0("\nlast date = ", lastdate, "\n"))
             cat(file=stderr(), paste0("output$portfolio:   ",input$portfolio,"|",input$span,
                                       "|",input$dateRange[1],"|",input$dateRange[2],"\n"))
@@ -251,7 +265,7 @@ shinyServer(function(input, output, session){
     output$description <- renderPrint({
         if (input$password == readpass | input$password == writepass){
             getData()
-            print(pp0)
+            print(pp0, row.names = FALSE)
             cat(paste0("\nlast date = ", lastdate, "\n"))
             cat(file=stderr(), paste0("output$description: ",input$portfolio,"|",input$span,
                                       "|",input$dateRange[1],"|",input$dateRange[2],"\n"))
